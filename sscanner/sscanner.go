@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"sync"
 	"os"
 )
 
@@ -42,15 +43,24 @@ func (s *Scanner) Init(
 	s.resolver = resolver
 }
 
+func lookup(domain string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	ips, err := net.LookupHost(domain)
+	if err == nil {
+		for _, ip := range ips {
+			log.Printf("Found %s at %s", domain, ip)
+		}
+	}
+}
+
 func (s *Scanner) Scan() {
+	var wg sync.WaitGroup
 	scanner := bufio.NewScanner(s.subdomainsFile)
 	for scanner.Scan() {
 		subdomain := fmt.Sprintf("%s.%s", scanner.Text(), s.domain)
-		ips, err := net.LookupHost(subdomain)
-		if err == nil {
-			for _, ip := range ips {
-				log.Printf("Found %s at %s", subdomain, ip)
-			}
-		}
+		go lookup(subdomain, &wg)
+		wg.Add(1)
 	}
+	log.Printf("All subdomains parsed.")
+	wg.Wait()
 }
