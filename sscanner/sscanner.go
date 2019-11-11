@@ -25,9 +25,10 @@ func readSubdomainsFile(fp string) *os.File {
 type Scanner struct {
 	domain			string
 	subdomainsFile	*os.File
+	resolver		string
 }
 
-func (s* Scanner) Init(domain, subdomainsFile string) {
+func (s* Scanner) Init(domain, subdomainsFile, resolver string) {
 	s.domain = domain
 	s.subdomainsFile = readSubdomainsFile(subdomainsFile)
 }
