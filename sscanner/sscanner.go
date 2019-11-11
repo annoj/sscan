@@ -61,6 +61,6 @@ func (s *Scanner) Scan() {
 		go lookup(subdomain, &wg)
 		wg.Add(1)
 	}
-	log.Printf("All subdomains parsed.")
+	s.subdomainsFile.Close()
 	wg.Wait()
 }
