@@ -19,18 +19,18 @@ import (
 	"os"
 )
 
+type Scanner struct {
+	domain         string
+	subdomainsFile *os.File
+	resolver       string
+}
+
 func readSubdomainsFile(fp string) *os.File {
 	f, err := os.Open(fp)
 	if err != nil {
 		panic("Subdomainsfile could not be opened")
 	}
 	return f
-}
-
-type Scanner struct {
-	domain         string
-	subdomainsFile *os.File
-	resolver       string
 }
 
 func (s *Scanner) Init(
