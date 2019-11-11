@@ -7,6 +7,11 @@
 //
 // Auhor: Jona Heitzer
 //
+// TODO: Fix scans yielding unreliable / different results
+//			-> Maby due to timeouts of systemd-resloved or
+//				resolver dropping requests?
+//			-> https://github.com/golang/go/issues/10417
+//
 
 package sscanner
 
