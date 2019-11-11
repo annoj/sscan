@@ -1,7 +1,7 @@
 //
 // sscann subdomain scanner
 // ========================
-// 
+//
 // Scans a given domain for subdomains using DNS service.
 // Version 0.0.1
 //
@@ -10,7 +10,7 @@
 
 package sscanner
 
-import(
+import (
 	"os"
 )
 
@@ -23,13 +23,17 @@ func readSubdomainsFile(fp string) *os.File {
 }
 
 type Scanner struct {
-	domain			string
-	subdomainsFile	*os.File
-	resolver		string
+	domain         string
+	subdomainsFile *os.File
+	resolver       string
 }
 
-func (s* Scanner) Init(domain, subdomainsFile, resolver string) {
+func (s *Scanner) Init(
+	domain string,
+	subdomainsFilePath string,
+	resolver string,
+) {
 	s.domain = domain
-	s.subdomainsFile = readSubdomainsFile(subdomainsFile)
+	s.subdomainsFile = readSubdomainsFile(subdomainsFilePath)
+	s.resolver = resolver
 }
-
