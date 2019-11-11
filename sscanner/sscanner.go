@@ -11,6 +11,10 @@
 package sscanner
 
 import (
+	"bufio"
+	"fmt"
+	"log"
+	"net"
 	"os"
 )
 
@@ -36,4 +40,17 @@ func (s *Scanner) Init(
 	s.domain = domain
 	s.subdomainsFile = readSubdomainsFile(subdomainsFilePath)
 	s.resolver = resolver
+}
+
+func (s *Scanner) Scan() {
+	scanner := bufio.NewScanner(s.subdomainsFile)
+	for scanner.Scan() {
+		subdomain := fmt.Sprintf("%s.%s", scanner.Text(), s.domain)
+		ips, err := net.LookupHost(subdomain)
+		if err == nil {
+			for _, ip := range ips {
+				log.Printf("Found %s at %s", subdomain, ip)
+			}
+		}
+	}
 }
