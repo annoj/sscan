@@ -8,9 +8,10 @@
 // Auhor: Jona Heitzer
 //
 // TODO: Fix scans yielding unreliable / different results
-//			-> Maby due to timeouts of systemd-resloved or
+//			-> Maby due to timeouts of systemd-resolved or
 //				resolver dropping requests?
 //			-> https://github.com/golang/go/issues/10417
+//		 => Quick'n'dirty fix: Just retry on lookup failure
 //
 
 package sscanner
@@ -29,6 +30,7 @@ type Scanner struct {
 	subdomainsFile	*os.File
 	resolver		string
 	outfilePath		string
+	retry 			int
 }
 
 func readSubdomainsFile(fp string) *os.File {
@@ -44,26 +46,32 @@ func (s *Scanner) Init(
 	subdomainsFilePath string,
 	resolver string,
 	outfilePath string,
+	retry int,
 ) {
 	log.Println("Initializing scanner")
 	s.domain = domain
 	s.subdomainsFile = readSubdomainsFile(subdomainsFilePath)
 	s.resolver = resolver
 	s.outfilePath = outfilePath
+	s.retry = retry
 }
 
 func lookup(
 	domain string,
+	retry int,
 	wg *sync.WaitGroup,
 	outChan chan string,
 	done chan bool,
 ) {
 	defer wg.Done()
-	ips, err := net.LookupHost(domain)
-	if err == nil {
-		for _, ip := range ips {
-			log.Printf("Found %s at %s", domain, ip)
-			outChan <- fmt.Sprintf("%s,%s", domain, ip)
+	for i := 0; i < retry; i++ {
+		ips, err := net.LookupHost(domain)
+		if err == nil {
+			for _, ip := range ips {
+				log.Printf("Found %s at %s", domain, ip)
+				outChan <- fmt.Sprintf("%s,%s", domain, ip)
+			}
+			break
 		}
 	}
 }
@@ -95,7 +103,7 @@ func (s *Scanner) Scan() {
 	log.Println("Scan running...")
 	for scanner.Scan() {
 		subdomain := fmt.Sprintf("%s.%s", scanner.Text(), s.domain)
-		go lookup(subdomain, &wg, outChan, done)
+		go lookup(subdomain, s.retry, &wg, outChan, done)
 		wg.Add(1)
 	}
 	s.subdomainsFile.Close()
